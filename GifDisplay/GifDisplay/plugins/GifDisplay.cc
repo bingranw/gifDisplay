@@ -410,7 +410,8 @@ for (CSCComparatorDigiCollection::DigiRangeIterator com=comparators->begin(); co
 //make event display
 vector<CSCDetID> usedChamber;
 
-if (Event < 10){//find(eventList.begin(), eventList.end(), Event) != eventList.end()){
+//if (Event < 10){//find(eventList.begin(), eventList.end(), Event) != eventList.end()){
+if (find(eventList.begin(), eventList.end(), Event) != eventList.end()){
 
    WireStripDisplay(eventDisplayDir, chamberID, wire_container, strip_container, com_container, usedChamber, Run, Event);
 
