@@ -1,3 +1,3 @@
 #Automatically created by SCRAM
 import os
-__path__.append(os.path.dirname(os.path.abspath(__file__).rsplit('/Gif/Gif/',1)[0])+'/cfipython/slc6_amd64_gcc491/Gif/Gif')
+__path__.append(os.path.dirname(os.path.abspath(__file__).rsplit('/GifDisplay/GifDisplay/',1)[0])+'/cfipython/slc6_amd64_gcc491/GifDisplay/GifDisplay')

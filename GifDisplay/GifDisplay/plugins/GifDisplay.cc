@@ -263,9 +263,9 @@ if (chamberType == "11"){
    }else if(chamberType == "21"){
 
            chamberID.Endcap = 1;
-           chamberID.Station = 1;
-           chamberID.Ring = 2;
-           chamberID.Chamber = 36;
+           chamberID.Station = 2;
+           chamberID.Ring = 1;
+           chamberID.Chamber = 2;
 
            }
 //========================== WIRES ========================

@@ -21,8 +21,18 @@ process.options = cms.untracked.PSet(
 	SkipEvent = cms.untracked.vstring('LogicError','ProductNotFound')
 )
 
+process.MessageLogger = cms.Service("MessageLogger",
+       destinations   = cms.untracked.vstring('myDebugOutputFile.txt'),
+       debugModules = cms.untracked.vstring('*'),
+       message = cms.untracked.PSet(
+                                   threshold = cms.untracked.vstring('DEBUG')
+                                   )
+)
+
 process.source = cms.Source("PoolSource",
+#  fileNames = cms.untracked.vstring('file:me11_test27_oct23.root')
   fileNames = cms.untracked.vstring('file:me21_test27_oct30.root')
+
 )
 
 maxEvents = cms.untracked.PSet(
@@ -34,6 +44,7 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 10000
 process.source.duplicateCheckMode = cms.untracked.string('noDuplicateCheck')
 
 process.GifDisplay = cms.EDAnalyzer('GifDisplay',
+#rootFileName = cms.untracked.string("output_me11_test27_oct30.root"),
 rootFileName = cms.untracked.string("output_me21_test27_oct30.root"),
 
 stripDigiTag = cms.InputTag("muonCSCDigis","MuonCSCStripDigi"),

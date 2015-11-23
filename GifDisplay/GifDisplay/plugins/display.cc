@@ -52,7 +52,7 @@ void WireStripDisplay(TString address, CSCDetID id, vector<WIRE> &wire, vector<S
 //strip display
            c1->cd(3)->SetGridy();
 
-           TH2F* stripDis = new TH2F("stripDis", "", 162, 1, 82, 6, 0.5, 6.5);
+           TH2F* stripDis = new TH2F("stripDis", "", 162, 1, 82, 6, 1, 7);
            TH2F* stripDis_text = new TH2F("stripDis_text", "", 162, 1, 82, 6, 0.5, 6.5);
            TH1F* cfebNotReadOut = new TH1F("cfebNotReadOut", "", 81, 1, 82);
            TPaveText *pt3 = new TPaveText(0.4,0.95,0.6,0.99,"NDC");
@@ -83,7 +83,7 @@ void WireStripDisplay(TString address, CSCDetID id, vector<WIRE> &wire, vector<S
           SetEventDisplayLegend(legendName);
 
 //comparator display
-          c1->cd(4)->SetGridy();
+          c1->cd(2)->SetGridy();
           gPad->SetBottomMargin(0.15);
           TH2F* comparatorDis = new TH2F("comparatorDis", "", 160, 1, 161, 6, 1, 7);
           TH2F* comparatorDis_text = new TH2F("comparatorDis_text", "", 160, 1, 161, 6, 1, 7);
@@ -96,7 +96,7 @@ void WireStripDisplay(TString address, CSCDetID id, vector<WIRE> &wire, vector<S
           SetTitle(pt4, "Comparator Hit Timing");
           pt4->Draw();
 //strip hit display
-          c1->cd(2)->SetGridy();
+          c1->cd(4)->SetGridy();
 
           TGraph* stripHitDis;
           TGraph* comparatorHitNotReadOut;
