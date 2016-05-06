@@ -35,7 +35,7 @@ void SetTitle(TPaveText* pt, TString name);
 template <typename T>
 string NumberToString( T Number );
 void CountCFEB(double cfeb[], vector<Strips> s);
-void BlockUnreadCFEB(double cfeb[], TH1F* cfebNotReadOut);
+void BlockUnreadCFEB(double cfeb[], TH1F* cfebNotReadOut, int nCFEB);
 void SetHistContour(TH2F* hist, double Min, double Max);
 vector<double> MakeStripHit(vector<Strips> sp);
 void ShiftStripHits(vector<double>& stripHits, double layer);

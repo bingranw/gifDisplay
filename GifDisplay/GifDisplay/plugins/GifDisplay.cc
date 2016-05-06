@@ -281,7 +281,7 @@ for (CSCWireDigiCollection::DigiRangeIterator wi=wires->begin(); wi!=wires->end(
     WIRE tmpWIRE;
 
     tmpID.Endcap = id.endcap();
-    tmpID.Ring = id.ring();
+    tmpID.Ring = id.ring()==4 ? 1 : id.ring();
     tmpID.Station = id.station();
     tmpID.Chamber = id.chamber();
     tmpID.Layer = id.layer();
@@ -381,7 +381,7 @@ for (CSCComparatorDigiCollection::DigiRangeIterator com=comparators->begin(); co
     COMPARATOR tmpCOMPARATOR;
 
     tmpID.Endcap = id.endcap();
-    tmpID.Ring = id.ring();
+    tmpID.Ring = id.ring()==4 ? 1 : id.ring();
     tmpID.Station = id.station();
     tmpID.Chamber = id.chamber();
     tmpID.Layer = id.layer();
@@ -410,8 +410,8 @@ for (CSCComparatorDigiCollection::DigiRangeIterator com=comparators->begin(); co
 //make event display
 vector<CSCDetID> usedChamber;
 
-//if (Event < 10){//find(eventList.begin(), eventList.end(), Event) != eventList.end()){
-if (find(eventList.begin(), eventList.end(), Event) != eventList.end()){
+if (Event < 500){//find(eventList.begin(), eventList.end(), Event) != eventList.end()){
+//if (find(eventList.begin(), eventList.end(), Event) != eventList.end()){
 
    WireStripDisplay(eventDisplayDir, chamberID, wire_container, strip_container, com_container, usedChamber, Run, Event);
 

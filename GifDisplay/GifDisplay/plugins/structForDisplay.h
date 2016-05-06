@@ -14,6 +14,35 @@
 #include <string>
 #include <cmath>
 
+//x axis station, y axis ring
+/*TH2F* NWireGroup;
+TH2F* NStrip;
+
+NWireGroup = new TH2F("NWireGroup", "NWireGroup", 4, 1, 5, 4, 1, 5);
+NStrip = new TH2F("NStrip", "NStrip", 4, 1, 5, 4, 1, 5);
+
+NWireGroup->SetBinContent(1, 1, 48);
+NWireGroup->SetBinContent(1, 2, 48);
+NWireGroup->SetBinContent(1, 3, 48);
+NWireGroup->SetBinContent(1, 4, 48);
+NWireGroup->SetBinContent(2, 1, 112);
+NWireGroup->SetBinContent(3, 1, 96);
+NWireGroup->SetBinContent(4, 1, 96);
+NWireGroup->SetBinContent(2, 2, 64);
+NWireGroup->SetBinContent(3, 2, 64);
+NWireGroup->SetBinContent(4, 2, 64);
+
+NStrip->SetBinContent(1, 1, 48);
+NStrip->SetBinContent(1, 2, 80);
+NStrip->SetBinContent(1, 3, 64);
+NStrip->SetBinContent(1, 4, 64);
+NStrip->SetBinContent(2, 1, 80);
+NStrip->SetBinContent(3, 1, 80);
+NStrip->SetBinContent(4, 1, 80);
+NStrip->SetBinContent(2, 2, 80);
+NStrip->SetBinContent(3, 2, 80);
+NStrip->SetBinContent(4, 2, 80);
+*/
 using namespace std;
 
 inline bool doubleEqual(double a, double b) {
