@@ -1,4 +1,4 @@
-#include "structForDisplay.h"
+#include "Gif.h"
 #include <TROOT.h>
 #include <TChain.h>
 #include <TFile.h>
@@ -25,7 +25,7 @@ void WireStripDisplay(TString address, CSCDetID id, vector<WIRE> &wire, vector<S
 bool ChamberUsedForEventDisplay(CSCDetID id, vector<CSCDetID> usedChamber);
 void SetSaveNameLegendName(TString& name, TString& legendName, TString address, CSCDetID id, int Run, int Event);
 void SaveUsedChamber(CSCDetID id, vector<int> layer_strip, vector<int> layer_wire, vector<int> layer_comparator, vector<CSCDetID> &usedChamber);
-void StripDisplay(CSCDetID id, vector<int>& layer_strip, vector<STRIP>& strip, double cfeb[], TH2F* stripDis, TH2F* stripDis_text, TH1F* cfebNotReadOut);
+void StripDisplay(CSCDetID id, vector<int>& layer_strip, vector<STRIP>& strip, double cfeb[], TH2F* stripDis, TH2F* stripDis_text, TH1F* cfebNotReadOut, TH1F* cfebNotInstall);
 void MakeOneLayerStripDisplay(int layer, vector<Strips> &s, TH2F* stripDisplay, int option);
 void MakeOneLayerWireDisplay(int layer, vector<Wire> &w, TH2F* wireDisplay);
 void MakeOneLayerComparatorDisplay(int layer, vector<Comparator> &c, TH2F* comparatorDisplay);
@@ -35,7 +35,9 @@ void SetTitle(TPaveText* pt, TString name);
 template <typename T>
 string NumberToString( T Number );
 void CountCFEB(double cfeb[], vector<Strips> s);
-void BlockUnreadCFEB(double cfeb[], TH1F* cfebNotReadOut, int nCFEB);
+void MakeShadeForComparatorPanel(TH1F* cfebNotReadOut,  TH1F* cfebNotInstall, TH1F* cfebNotReadOut_comparator,  TH1F* cfebNotInstall_comparator);
+void BlockUnreadCFEB(double cfeb[], TH1F* cfebNotReadOut);
+void BlockNotInstalledCFEB(TH1F* cfebNotInstall);
 void SetHistContour(TH2F* hist, double Min, double Max);
 vector<double> MakeStripHit(vector<Strips> sp);
 void ShiftStripHits(vector<double>& stripHits, double layer);
