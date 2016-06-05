@@ -27,6 +27,30 @@
 #include "Rtypes.h"
 void WireStripDisplay(TString address, CSCDetID id, vector<WIRE> &wire, vector<STRIP> &strip, vector<COMPARATOR> &comparator, vector<CSCDetID> &usedChamber, int Run, int Event){
 
+        TH2F* NWireGroup = new TH2F("NWireGroup", "NWireGroup", 4, 1, 5, 4, 1, 5);
+        TH2F* NStrip = new TH2F("NStrip", "NStrip", 4, 1, 5, 4, 1, 5);
+
+        NWireGroup->SetBinContent(1, 1, 48);
+        NWireGroup->SetBinContent(1, 2, 48);
+        NWireGroup->SetBinContent(1, 3, 48);
+//        NWireGroup->SetBinContent(1, 4, 48);
+        NWireGroup->SetBinContent(2, 1, 112);
+        NWireGroup->SetBinContent(3, 1, 96);
+        NWireGroup->SetBinContent(4, 1, 96);
+        NWireGroup->SetBinContent(2, 2, 64);
+        NWireGroup->SetBinContent(3, 2, 64);
+        NWireGroup->SetBinContent(4, 2, 64);
+
+        NStrip->SetBinContent(1, 1, 112);
+        NStrip->SetBinContent(1, 2, 80);
+        NStrip->SetBinContent(1, 3, 64);
+//        NStrip->SetBinContent(1, 4, 64);
+        NStrip->SetBinContent(2, 1, 80);
+        NStrip->SetBinContent(3, 1, 80);
+        NStrip->SetBinContent(4, 1, 80);
+        NStrip->SetBinContent(2, 2, 80);
+        NStrip->SetBinContent(3, 2, 80);
+        NStrip->SetBinContent(4, 2, 80);
 
         if (ChamberUsedForEventDisplay(id, usedChamber)) return;//this chamber has not been used for eventdisplay
 
@@ -40,44 +64,54 @@ void WireStripDisplay(TString address, CSCDetID id, vector<WIRE> &wire, vector<S
            vector<int> layer_wire = FindChamberIndex(id, wire);
            vector<int> layer_comparator = FindChamberIndex(id, comparator);
 
-
+           const int nStrip = NStrip->GetBinContent(id.Station, id.Ring);
+           const int nWireGroup = NWireGroup->GetBinContent(id.Station, id.Ring);
+           const int nCFEB = nStrip/16;
 //draw event display
            TCanvas *c1 = new TCanvas("c1", "", 0, 0, 2000, 1500);
 
-           c1->Divide(1,4);
+           c1->Divide(1,3);
 
            c1->SetRightMargin(0.15);
            c1->SetBottomMargin(0.25);
-           c1->SetTopMargin(0.1);
+           c1->SetTopMargin(0.15);
 //strip display
            c1->cd(3)->SetGridy();
+gPad->SetBottomMargin(0.15);
+           TH2F* stripDis = new TH2F("stripDis", "", nStrip*2+2, 1, nStrip+2, 6, 1, 7);
+           TH2F* stripDis_text = new TH2F("stripDis_text", "", nStrip*2+2, 1, nStrip+2, 6, 0.5, 6.5);
+           TH1F* cfebNotReadOut = new TH1F("cfebNotReadOut", "", nStrip+1, 1, nStrip+2);
+           TH1F* cfebNotInstall_me21 = new TH1F("cfebNotInstall_me21", "", 81, 1, 82);
+           TH1F* cfebNotInstall_me11 = new TH1F("cfebNotInstall_me11", "", 81, 1, 82);
 
-           TH2F* stripDis = new TH2F("stripDis", "", 162, 1, 82, 6, 1, 7);
-           TH2F* stripDis_text = new TH2F("stripDis_text", "", 162, 1, 82, 6, 1, 7);
-           TH1F* cfebNotReadOut = new TH1F("cfebNotReadOut", "", 81, 1, 82);
-           TH1F* cfebNotInstall = new TH1F("cfebNotInstall", "", 81, 1, 82);
            TH1F* cfebNotReadOut_comparator = new TH1F("cfebNotReadOut_comparator", "", 162, 1, 163);
-           TH1F* cfebNotInstall_comparator = new TH1F("cfebNotInstall_comparator", "", 162, 1, 163);
+           TH1F* cfebNotInstall_comparator_me21 = new TH1F("cfebNotInstall_comparator_me21", "", 162, 1, 163);
+           TH1F* cfebNotInstall_comparator_me11 = new TH1F("cfebNotInstall_comparator_me11", "", 162, 1, 163);
 
            TPaveText *pt3 = new TPaveText(0.4,0.95,0.6,0.99,"NDC");
-           double cfeb[5] = {0, 0, 0, 0, 0};
-
-           StripDisplay(/*c1,*/ id, layer_strip, strip, cfeb, stripDis, stripDis_text, cfebNotReadOut, cfebNotInstall);
-           MakeShadeForComparatorPanel(cfebNotReadOut, cfebNotInstall, cfebNotReadOut_comparator, cfebNotInstall_comparator);
+//           double cfeb[5] = {0, 0, 0, 0, 0};
+           double cfeb[nCFEB] = {}; 
+           StripDisplay(/*c1,*/ id, layer_strip, strip, cfeb, stripDis, stripDis_text, cfebNotReadOut, cfebNotInstall_me21, cfebNotInstall_me11);
+           MakeShadeForComparatorPanel(cfebNotReadOut, cfebNotInstall_me21, cfebNotReadOut_comparator, cfebNotInstall_comparator_me21, cfebNotInstall_comparator_me11);
            SetTitle(pt3, "Cathode Hit ADC Count");
 
            stripDis->Draw("COLZ");
            stripDis_text->Draw("text same");
            cfebNotReadOut->Draw("B same");
-           cfebNotInstall->Draw("B same");
+           if (id.Station == 2) {
+              cfebNotInstall_me21->Draw("B same");
+              } else if (id.Station == 1) {
+                        cfebNotInstall_me11->Draw("B same");
+                        }
            pt3->Draw();
 
 //wire display
           c1->cd(1)->SetGridy();
-
-          TH2F* wireDis = new TH2F("wireDis", "", 112, 1, 113, 6, 1, 7);
-          TH2F* wireDis_text = new TH2F("wireDis_text", "", 112, 1, 113, 6, 1, 7);
-          TPaveText *pt1 = new TPaveText(0.4,.95,0.6,0.99, "NDC");
+gPad->SetTopMargin(0.1);
+gPad->SetBottomMargin(0.15);
+          TH2F* wireDis = new TH2F("wireDis", "", nWireGroup, 1, nWireGroup+1, 6, 1, 7);
+          TH2F* wireDis_text = new TH2F("wireDis_text", "", nWireGroup, 1, nWireGroup+1, 6, 1, 7);
+          TPaveText *pt1 = new TPaveText(0.4,.96,0.6,0.99, "NDC");
 
           WireDisplay(id, layer_wire, wire, wireDis, wireDis_text);
           SetTitle(pt1, "Anode Hit Timing");
@@ -90,22 +124,25 @@ void WireStripDisplay(TString address, CSCDetID id, vector<WIRE> &wire, vector<S
 
 //comparator display
           c1->cd(2)->SetGridy();
-//          gPad->SetBottomMargin(0.15);
-          TH2F* comparatorDis = new TH2F("comparatorDis", "", 162, 1, 163, 6, 1, 7);
-          TH2F* comparatorDis_text = new TH2F("comparatorDis_text", "", 162, 1, 163, 6, 1, 7);
+gPad->SetBottomMargin(0.15);
           TPaveText *pt4 = new TPaveText(0.4,.95,0.6,0.99, "NDC");
+         TH2F* comparatorDis = new TH2F("comparatorDis", "", nStrip*2+2, 1, nStrip*2+3, 6, 1, 7);
+         TH2F* comparatorDis_text = new TH2F("comparatorDis_text", "", nStrip*2+2, 1, nStrip*2+3, 6, 1, 7);
 
           ComparatorDisplay(id, layer_comparator, comparator, comparatorDis, comparatorDis_text);
-
           comparatorDis->Draw("COLZ");
-          comparatorDis_text->Draw("text same");
+
 //          cfebNotInstall->Draw("B same");
 //          cfebNotReadOut_comparator->Draw("B same");
-          cfebNotInstall_comparator->Draw("B same");
+          if (id.Station == 2) {
+             cfebNotInstall_comparator_me21->Draw("B same");
+             } else if (id.Station == 1) {
+                       cfebNotInstall_comparator_me11->Draw("B same");
+                       }
           SetTitle(pt4, "Comparator Hit Timing");
           pt4->Draw();
 //strip hit display
-          c1->cd(4)->SetGridy();
+/*          c1->cd(4)->SetGridy();
           gPad->SetBottomMargin(0.15);
           TGraph* stripHitDis;
           TGraph* comparatorHitNotReadOut;
@@ -120,12 +157,8 @@ void WireStripDisplay(TString address, CSCDetID id, vector<WIRE> &wire, vector<S
           TPaveText *pt2 = new TPaveText(0.4,.95,0.6,0.99, "NDC");
           SetTitle(pt2, "Strip Hit");
           stripHitDis->Draw("ap");
-//          cfebNotReadOut->Draw("B same");
           cfebNotInstall->Draw("B same");
           pt2->Draw();
-//          stripHitDis->GetXaxis()->SetLimits(1, 82);
-//          stripHitDis->GetYaxis()->SetRangeUser(1, 7);
-//          stripHitDis->SetMarkerStyle(20);
           SetPlotDetail_StripHit(stripHitDis);
 
           }
@@ -136,8 +169,7 @@ void WireStripDisplay(TString address, CSCDetID id, vector<WIRE> &wire, vector<S
           comparatorHitNotReadOut->SetMarkerStyle(24);
           comparatorHitNotReadOut->SetMarkerColor(2);
           }
-//          cfebNotReadOut->Draw("B same");
-
+*/
 
           c1->Update();
           c1->SaveAs(name + ".png");
@@ -221,7 +253,7 @@ void SaveUsedChamber(CSCDetID id, vector<int> layer_strip, vector<int> layer_wir
 }
 
 
-void StripDisplay(/*TCanvas* c1,*/ CSCDetID id, vector<int>& layer_strip, vector<STRIP>& strip, double cfeb[], TH2F* stripDis, TH2F* stripDis_text, TH1F* cfebNotReadOut, TH1F* cfebNotInstall){ 
+void StripDisplay(/*TCanvas* c1,*/ CSCDetID id, vector<int>& layer_strip, vector<STRIP>& strip, double cfeb[], TH2F* stripDis, TH2F* stripDis_text, TH1F* cfebNotReadOut, TH1F* cfebNotInstall_me21, TH1F* cfebNotInstall_me11){ 
 
 //         c1->cd(4)->SetGridy();         
 
@@ -248,16 +280,20 @@ void StripDisplay(/*TCanvas* c1,*/ CSCDetID id, vector<int>& layer_strip, vector
                   }
                }
 
-          BlockUnreadCFEB(cfeb, cfebNotReadOut);
-          BlockNotInstalledCFEB(cfebNotInstall);
+//          BlockUnreadCFEB(cfeb, cfebNotReadOut);
+          BlockUnreadCFEB(cfeb, cfebNotReadOut, (cfebNotReadOut->GetNbinsX())/16);
+          BlockNotInstalledCFEB(cfebNotInstall_me21, cfebNotInstall_me11);
 
           SetHistContour(stripDis, 1, 500);
 
           cfebNotReadOut->SetFillStyle(3001);
           cfebNotReadOut->SetFillColor(15);
-          cfebNotInstall->SetFillStyle(3001);
+          cfebNotInstall_me21->SetFillStyle(3001);
+          cfebNotInstall_me11->SetFillStyle(3001);
+
 //          TColor *color = gROOT->GetColor("#2F2828");
-          cfebNotInstall->SetFillColor(12);
+          cfebNotInstall_me21->SetFillColor(12);
+          cfebNotInstall_me11->SetFillColor(12);
 
           stripDis_text->SetMarkerSize(2);
 
@@ -493,7 +529,7 @@ void CountCFEB(double cfeb[], vector<Strips> s){
 
 }
 
-void MakeShadeForComparatorPanel(TH1F* cfebNotReadOut,  TH1F* cfebNotInstall, TH1F* cfebNotReadOut_comparator,  TH1F* cfebNotInstall_comparator) {
+void MakeShadeForComparatorPanel(TH1F* cfebNotReadOut,  TH1F* cfebNotInstall, TH1F* cfebNotReadOut_comparator,  TH1F* cfebNotInstall_comparator_me21, TH1F* cfebNotInstall_comparator_me11) {
 
      for (int i = 1; i < cfebNotReadOut->GetSize()-1; i++) {
 
@@ -505,27 +541,36 @@ void MakeShadeForComparatorPanel(TH1F* cfebNotReadOut,  TH1F* cfebNotInstall, TH
             }
 
          }
-     for (int i = 129; i < cfebNotInstall_comparator->GetSize()-1; i++) {
+     for (int i = 129; i < cfebNotInstall_comparator_me21->GetSize()-1; i++) {
 
-            cfebNotInstall_comparator->SetBinContent(i, 7);
+            cfebNotInstall_comparator_me21->SetBinContent(i, 7);
+
+         }
+     for (int i = 97; i < 128; i++) {
+
+            cfebNotInstall_comparator_me11->SetBinContent(i, 7);
 
          }
 
-      cfebNotInstall_comparator->GetYaxis()->SetRangeUser(1,7);
+      cfebNotInstall_comparator_me21->GetYaxis()->SetRangeUser(1,7);
+      cfebNotInstall_comparator_me11->GetYaxis()->SetRangeUser(1,7);
+
       cfebNotReadOut_comparator->GetYaxis()->SetRangeUser(1,7);
     
       cfebNotReadOut_comparator->SetFillStyle(3001);
       cfebNotReadOut_comparator->SetFillColor(15);
-      cfebNotInstall_comparator->SetFillStyle(3001);
-      cfebNotInstall_comparator->SetFillColor(12);
+      cfebNotInstall_comparator_me21->SetFillStyle(3001);
+      cfebNotInstall_comparator_me21->SetFillColor(12);
+      cfebNotInstall_comparator_me11->SetFillStyle(3001);
+      cfebNotInstall_comparator_me11->SetFillColor(12);
 
 }
 
-void BlockUnreadCFEB(double cfeb[], TH1F* cfebNotReadOut){
-
+//void BlockUnreadCFEB(double cfeb[], TH1F* cfebNotReadOut){
+void BlockUnreadCFEB(double cfeb[], TH1F* cfebNotReadOut, int nCFEB){ 
 //      gStyle->SetPalette(52, 0);
 
-           for (int i = 0; i < 5; i++){//in each interesting layer has strip hits
+           for (int i = 0; i < nCFEB; i++){//in each interesting layer has strip hits
 
                if (cfeb[i] == 0){
 
@@ -544,6 +589,9 @@ void BlockUnreadCFEB(double cfeb[], TH1F* cfebNotReadOut){
                           }
 
 //                    } 
+                  
+                  if (nCFEB == 7 && i == 6) cfebNotReadOut->SetBinContent(113, 7);
+                  if (nCFEB == 5 && i == 4) cfebNotReadOut->SetBinContent(81, 7);
 
                   }
 
@@ -554,14 +602,22 @@ cfebNotReadOut->GetYaxis()->SetRangeUser(1,7);
 
 }
 
-void BlockNotInstalledCFEB(TH1F* cfebNotInstall) {
+void BlockNotInstalledCFEB(TH1F* cfebNotInstall_me21, TH1F* cfebNotInstall_me11) {
 
-     for (int i = 65; i < cfebNotInstall->GetSize()-1; i++) {
+     for (int i = 65; i < cfebNotInstall_me21->GetSize()-1; i++) {
 
-         cfebNotInstall->SetBinContent(i, 7);
+         cfebNotInstall_me21->SetBinContent(i, 7);
 
          }
-cfebNotInstall->GetYaxis()->SetRangeUser(1,7);
+cfebNotInstall_me21->GetYaxis()->SetRangeUser(1,7);
+
+     for (int i = 49; i < 65; i++) {
+
+         cfebNotInstall_me11->SetBinContent(i, 7);
+
+         }
+cfebNotInstall_me11->GetYaxis()->SetRangeUser(1,7);
+
 }
 
 
