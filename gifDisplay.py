@@ -36,11 +36,11 @@ process.MessageLogger = cms.Service("MessageLogger",
 
 #pickEvent = '284036:439337726'
 #pickEvent = '284036:439691998'
-pickEvent = '284036:173346539'
+#pickEvent = '284036:173346539'
 process.source = cms.Source("PoolSource",
 #  fileNames = cms.untracked.vstring('file:me11_test27_oct23.root')
-  fileNames = cms.untracked.vstring('file:pickevents_26.root') #../../inputRoot/0026F566-83BB-E711-B677-7845C4FC3683.root')
-#  fileNames = cms.untracked.vstring('file:../../inputRoot/Zmu_rawreco_2016H.root')
+#  fileNames = cms.untracked.vstring('file:../../../CMSSW_9_2_13/src/../../inputRoot/0026F566-83BB-E711-B677-7845C4FC3683.root')
+  fileNames = cms.untracked.vstring('file:../../../inputRoot/Zmu_rawreco_2016H.root')
 #  eventsToProcess = cms.untracked.VEventRange(pickEvent + '-' + pickEvent)
 
 )
