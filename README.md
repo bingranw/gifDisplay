@@ -17,4 +17,4 @@ cmsRun gifDisplay.py to produce event displays
 
 * this version works under CMSSW_9_2_13, NOT tested in other version of CMSSW 
 
-email hualin.mei@cern.ch if you have any suggestions and questions
+email hualin.mei@cern.ch if you have any suggestions or questions
