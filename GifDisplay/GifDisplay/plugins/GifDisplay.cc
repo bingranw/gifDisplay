@@ -139,9 +139,14 @@ class GifDisplay : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
       virtual void endJob() override;
 
 // ----------member data ---------------------------
-edm::InputTag stripDigiTag;
-edm::InputTag wireDigiTag;
-edm::InputTag comparatorDigiTag;
+//edm::InputTag stripDigiTag;
+//edm::InputTag wireDigiTag;
+//edm::InputTag comparatorDigiTag;
+  edm::EDGetTokenT<CSCWireDigiCollection> wireDigiTagSrc;
+  edm::EDGetTokenT<CSCStripDigiCollection> stripDigiTagSrc;
+  edm::EDGetTokenT<CSCComparatorDigiCollection> compDigiTagSrc;
+  edm::EDGetTokenT<CSCCLCTDigiCollection> clctDigiTagSrc;
+
 //edm::InputTag compDigiTag;
 edm::InputTag cscRecHitTag;
 //edm::InputTag cscSegTag;
@@ -154,7 +159,11 @@ edm::InputTag corrlctDigiTag;
 
 //std::string theRootFileName,pdf;
 std::string eventDisplayDir;
-std::vector<int> eventList;
+std::vector<double> eventList;
+std::vector<int> endcapList;
+std::vector<int> stationList;
+std::vector<int> ringList;
+std::vector<int> chamberList;
 std::string eventlistFile;
 
 std::string chamberType;
@@ -184,13 +193,16 @@ fout=new TFile(theRootFileName.c_str(),"RECREATE");
 fout->cd();
 */
 //cscRecHitTag  = iConfig.getParameter<edm::InputTag>("cscRecHitTag");
-stripDigiTag  = iConfig.getParameter<edm::InputTag>("stripDigiTag");
-wireDigiTag  = iConfig.getParameter<edm::InputTag>("wireDigiTag");
-comparatorDigiTag = iConfig.getParameter<edm::InputTag>("comparatorDigiTag");
+//stripDigiTag  = iConfig.getParameter<edm::InputTag>("stripDigiTag");
+//wireDigiTag  = iConfig.getParameter<edm::InputTag>("wireDigiTag");
+//comparatorDigiTag = iConfig.getParameter<edm::InputTag>("comparatorDigiTag");
+  wireDigiTagSrc=consumes<CSCWireDigiCollection>(iConfig.getUntrackedParameter<edm::InputTag>("wireDigiTagSrc")),
+  stripDigiTagSrc=consumes<CSCStripDigiCollection>(iConfig.getUntrackedParameter<edm::InputTag>("stripDigiTagSrc")),
+  compDigiTagSrc=consumes<CSCComparatorDigiCollection>(iConfig.getUntrackedParameter<edm::InputTag>("compDigiTagSrc")),
 //alctDigiTag = iConfig.getParameter<edm::InputTag>("alctDigiTag");
-//clctDigiTag = iConfig.getParameter<edm::InputTag>("clctDigiTag");
+clctDigiTagSrc = consumes<CSCCLCTDigiCollection>(iConfig.getUntrackedParameter<edm::InputTag>("clctDigiTagSrc"));
 //corrlctDigiTag = iConfig.getParameter<edm::InputTag>("corrlctDigiTag");
-eventDisplayDir = iConfig.getUntrackedParameter<std::string>("eventDisplayDir","/afs/cern.ch/work/h/hmei/GIF/CMSSW_7_5_1/src/eventdisplay");
+eventDisplayDir = iConfig.getUntrackedParameter<std::string>("eventDisplayDir","/home/mhl/public_html/2017/20171025_cscSeg/eventdisplay/");
 eventlistFile = "eventList.txt";
 chamberType = iConfig.getUntrackedParameter<std::string>("chamberType", "11");
 }
@@ -219,6 +231,12 @@ GifDisplay::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    using namespace edm;
    using namespace std;
 
+int testE = 2;
+int testS = 1;
+int testR = 1;
+int testC = 21;
+bool doDebug = false;
+
 edm::ESHandle<CSCGeometry> cscGeom;
 iSetup.get<MuonGeometryRecord>().get(cscGeom);
 //edm::EventId evId=iEvent.id();
@@ -228,8 +246,14 @@ double Run,Event;
 Run = iEvent.id().run();
 Event = iEvent.id().event();
 
-vector<CSCDetID> chamberList;
+//vector<CSCDetID> chamberList;
+//chamberList.clear();
+endcapList.clear();
+stationList.clear();
+ringList.clear();
 chamberList.clear();
+eventList.clear();
+
 vector<WIRE>   wire_container;
 vector<STRIP>  strip_container;
 vector<COMPARATOR> com_container;
@@ -243,14 +267,30 @@ while (file)
      istringstream is(line);
      while (is) {
 
-           int data;
-           is >> data;
-           eventList.push_back(data);
+           double event;
+           is >> event;
+           eventList.push_back(event);
+
+           int endcap; is >> endcap;
+           endcapList.push_back(endcap);
+
+           int station; is >> station;
+           stationList.push_back(station);
+
+           int ring; is >> ring;
+           ringList.push_back(ring);
+
+           int chamber; is >> chamber;
+           chamberList.push_back(chamber);
 
            }
 
   }
 
+
+if (find (eventList.begin(), eventList.end(), Event) == eventList.end()) return;
+
+/*
 CSCDetID chamberID;
 
 if (chamberType == "11"){
@@ -268,9 +308,14 @@ if (chamberType == "11"){
            chamberID.Chamber = 2;
 
            }
+*/
+
 //========================== WIRES ========================
+//edm::EDGetTokenT<CSCWireDigiCollection> w_token = consumes<CSCWireDigiCollection>(wireDigiTag);
 edm::Handle<CSCWireDigiCollection> wires;
-iEvent.getByLabel(wireDigiTag,wires);
+//iEvent.getByLabel(wireDigiTag,wires);
+iEvent.getByToken(wireDigiTagSrc, wires);
+
 
 for (CSCWireDigiCollection::DigiRangeIterator wi=wires->begin(); wi!=wires->end(); wi++) {
     CSCDetId id = (CSCDetId)(*wi).first;
@@ -280,8 +325,12 @@ for (CSCWireDigiCollection::DigiRangeIterator wi=wires->begin(); wi!=wires->end(
     CSCDetID tmpID;
     WIRE tmpWIRE;
 
+if (doDebug) {
+   if (!(id.endcap() == testE && id.station() == testS && id.ring() == testR && id.chamber() == testC ) ) continue;
+   }
+
     tmpID.Endcap = id.endcap();
-    tmpID.Ring = id.ring()==4 ? 1 : id.ring();
+    tmpID.Ring = id.ring();//==4 ? 1 : id.ring();
     tmpID.Station = id.station();
     tmpID.Chamber = id.chamber();
     tmpID.Layer = id.layer();
@@ -296,6 +345,8 @@ for (CSCWireDigiCollection::DigiRangeIterator wi=wires->begin(); wi!=wires->end(
        tmpWG.NumberTimeBin = int((wireIt->getTimeBinsOn()).size());
 
        tmpWIRE.second.push_back(tmpWG);
+//if (doDebug) cout << id << endl;
+//if (doDebug) cout << "wg: " << tmpWG.WireGroup << ", time: " << tmpWG.TimeBin << endl;
 
        }// all wires
   
@@ -307,8 +358,12 @@ for (CSCWireDigiCollection::DigiRangeIterator wi=wires->begin(); wi!=wires->end(
 
 //========================== STRIPS ========================
 
+//edm::Handle<CSCStripDigiCollection> strips;
+//iEvent.getByLabel(stripDigiTag,strips);
+//edm::EDGetTokenT<CSCStripDigiCollection> s_token = consumes<CSCStripDigiCollection>(stripDigiTag);
 edm::Handle<CSCStripDigiCollection> strips;
-iEvent.getByLabel(stripDigiTag,strips);
+//iEvent.getByLabel(wireDigiTag,wires);
+iEvent.getByToken(stripDigiTagSrc, strips);
 
 for (CSCStripDigiCollection::DigiRangeIterator si=strips->begin(); si!=strips->end(); si++) {
     CSCDetId id = (CSCDetId)(*si).first;
@@ -319,29 +374,37 @@ for (CSCStripDigiCollection::DigiRangeIterator si=strips->begin(); si!=strips->e
     STRIP tmpSTRIP;
 
     tmpID.Endcap = id.endcap();
-    tmpID.Ring = id.ring()==4 ? 1 : id.ring();//if me11a, set its ring=1
+    tmpID.Ring = id.ring();//==4 ? 1 : id.ring();//if me11a, set its ring=1
     tmpID.Station = id.station();
     tmpID.Chamber = id.chamber();
     tmpID.Layer = id.layer();
+
+if (doDebug) {
+   if (!(id.endcap() == testE && id.station() == testS && id.ring() == testR && id.chamber() == testC ) ) continue;
+   }
 
     for( ; stripIt != lastStrip; ++stripIt) {
 
        Strips tmpSP;
 
        tmpSP.Strip = stripIt->getStrip();
-       if (id.ring() == 4) tmpSP.Strip+=32;//for now ME11A only shift 2cfeb, BECAUSE GIF ME11A ONLY HAS dcfeb 1,5,7
+       if (id.ring() == 4) tmpSP.Strip+=64;//for now ME11A only shift 2cfeb, BECAUSE GIF ME11A ONLY HAS dcfeb 1,5,7
 
        std::vector<int> myADCVals = stripIt->getADCCounts();
        int adcTotal, maxADC, adcMaxTime;
        double ped = 0.5*(myADCVals[0]+myADCVals[1]);   
 
        adcTotal = 0; maxADC = 0; adcMaxTime = 0;
-      
+
+//cout << tmpID.Layer << ", strip: " << tmpSP.Strip << endl;     
+//cout << myADCVals[0] << " " << myADCVals[1] << endl;
+
        for (int i = 2; i < int(myADCVals.size()); i++){
 
            double tmpADC = myADCVals[i]-ped;
            adcTotal+=tmpADC;
 
+//cout << myADCVals[i] - ped << " " ;
            if (tmpADC > maxADC && tmpADC > 13.3){
 
               maxADC = tmpADC;
@@ -350,6 +413,10 @@ for (CSCStripDigiCollection::DigiRangeIterator si=strips->begin(); si!=strips->e
               }
 
            }//loop over all 6 time bins for each strip, from 2 to 7
+//cout << endl;
+
+//if (doDebug) cout << id << endl;
+//if (doDebug&&maxADC>0) cout << "strip: " << tmpSP.Strip << ", adc: " << maxADC << endl;
 
        tmpSP.ADCTotal = adcTotal;
        tmpSP.MaxADC = maxADC;
@@ -366,13 +433,22 @@ for (CSCStripDigiCollection::DigiRangeIterator si=strips->begin(); si!=strips->e
 //==========COMPARATOR=========================
 
 
+//edm::Handle<CSCComparatorDigiCollection> comparators;
+//iEvent.getByLabel(comparatorDigiTag,comparators);
+//edm::EDGetTokenT<CSCComparatorDigiCollection> c_token = consumes<CSCComparatorDigiCollection>(comparatorDigiTag);
 edm::Handle<CSCComparatorDigiCollection> comparators;
-iEvent.getByLabel(comparatorDigiTag,comparators);
+//iEvent.getByLabel(wireDigiTag,wires);
+iEvent.getByToken(compDigiTagSrc, comparators);
 
 
 for (CSCComparatorDigiCollection::DigiRangeIterator com=comparators->begin(); com!=comparators->end(); com++) {
 
     CSCDetId id = (CSCDetId)(*com).first;
+
+if (doDebug) {
+   if (!(id.endcap() == testE && id.station() == testS && id.ring() == testR && id.chamber() == testC ) ) continue;
+   }
+
     std::vector<CSCComparatorDigi>::const_iterator comparatorIt = (*com).second.first;
     std::vector<CSCComparatorDigi>::const_iterator lastComparator = (*com).second.second;
    
@@ -381,7 +457,7 @@ for (CSCComparatorDigiCollection::DigiRangeIterator com=comparators->begin(); co
     COMPARATOR tmpCOMPARATOR;
 
     tmpID.Endcap = id.endcap();
-    tmpID.Ring = id.ring()==4 ? 1 : id.ring();
+    tmpID.Ring = id.ring();// ? 1 : id.ring();
     tmpID.Station = id.station();
     tmpID.Chamber = id.chamber();
     tmpID.Layer = id.layer();
@@ -391,11 +467,12 @@ for (CSCComparatorDigiCollection::DigiRangeIterator com=comparators->begin(); co
        Comparator tmpCOM;   
 
        tmpCOM.Strip = comparatorIt->getStrip();
-       if (id.ring() == 4) tmpCOM.Strip+=32; //gif for now, same reason as strip
+       if (id.ring() == 4) tmpCOM.Strip+=64; //gif for now, same reason as strip
        tmpCOM.TimeBin = comparatorIt->getTimeBin();
        tmpCOM.ComparatorNumber = comparatorIt->getComparator();
-       if (id.ring() == 4) tmpCOM.ComparatorNumber+=64;
-
+       if (id.ring() == 4) tmpCOM.ComparatorNumber+=128;
+//if (doDebug) cout << id << endl;
+//if (doDebug) cout << "strip: " << tmpCOM.Strip << ", comparator: " << tmpCOM.ComparatorNumber << endl;
        tmpCOMPARATOR.second.push_back(tmpCOM);
 
        }
@@ -407,15 +484,60 @@ for (CSCComparatorDigiCollection::DigiRangeIterator com=comparators->begin(); co
 }//comparator collection
 
 
+
+// CLCT
+edm::Handle<CSCCLCTDigiCollection> clcts;
+iEvent.getByToken(clctDigiTagSrc, clcts);
+
+for (CSCCLCTDigiCollection::DigiRangeIterator j=clcts->begin(); j!=clcts->end(); j++) {
+    const CSCCLCTDigiCollection::Range& range =(*j).second;
+    const CSCDetId& idCLCT = (*j).first;
+if (doDebug) {
+   if (!(idCLCT.endcap() == testE && idCLCT.station() == testS && idCLCT.ring() == testR && idCLCT.chamber() == testC ) ) continue;
+   }
+
+    for (CSCCLCTDigiCollection::const_iterator digiIt = range.first; digiIt!=range.second; ++digiIt){
+
+if (doDebug) cout << idCLCT << endl;
+if (doDebug) {
+//cout << "strip: " << digiIt->getKeyStrip() << endl;
+//cout << "pattern: " << digiIt->getPattern() << endl;
+//cout << "quality: " << digiIt->getQuality() << endl;
+
+}
+
+
+        }
+
+    }
+
 //make event display
 vector<CSCDetID> usedChamber;
 
 //if (Event < 500){//find(eventList.begin(), eventList.end(), Event) != eventList.end()){
-if (find(eventList.begin(), eventList.end(), Event) != eventList.end()){
+//if (find(eventList.begin(), eventList.end(), Event) != eventList.end()){
 
-   WireStripDisplay(eventDisplayDir, chamberID, wire_container, strip_container, com_container, usedChamber, Run, Event);
+for (int i = 0; i < int(eventList.size()); i++) {
 
-   }
+   if (i >= 1000) continue;
+
+   double eventL = eventList[i];
+   int endcapL = endcapList[i];
+   int stationL = stationList[i];
+   int ringL = ringList[i];
+   int chamberL = chamberList[i];
+
+   if (Event != eventL) continue;
+
+   CSCDetID tmpId;
+   tmpId.Endcap = endcapL;
+   tmpId.Station =  stationL;
+   tmpId.Ring = ringL;
+   tmpId.Chamber = chamberL;
+
+   WireStripDisplay(eventDisplayDir, tmpId, wire_container, strip_container, com_container, usedChamber, Run, Event);
+}
+//   }
 
 
 

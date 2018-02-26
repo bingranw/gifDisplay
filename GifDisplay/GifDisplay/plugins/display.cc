@@ -27,13 +27,15 @@
 #include "Rtypes.h"
 void WireStripDisplay(TString address, CSCDetID id, vector<WIRE> &wire, vector<STRIP> &strip, vector<COMPARATOR> &comparator, vector<CSCDetID> &usedChamber, int Run, int Event){
 
+        gStyle->SetPalette(55);
+
         TH2F* NWireGroup = new TH2F("NWireGroup", "NWireGroup", 4, 1, 5, 4, 1, 5);
         TH2F* NStrip = new TH2F("NStrip", "NStrip", 4, 1, 5, 4, 1, 5);
 
         NWireGroup->SetBinContent(1, 1, 48);
         NWireGroup->SetBinContent(1, 2, 48);
         NWireGroup->SetBinContent(1, 3, 48);
-//        NWireGroup->SetBinContent(1, 4, 48);
+        NWireGroup->SetBinContent(1, 4, 48);
         NWireGroup->SetBinContent(2, 1, 112);
         NWireGroup->SetBinContent(3, 1, 96);
         NWireGroup->SetBinContent(4, 1, 96);
@@ -44,7 +46,7 @@ void WireStripDisplay(TString address, CSCDetID id, vector<WIRE> &wire, vector<S
         NStrip->SetBinContent(1, 1, 112);
         NStrip->SetBinContent(1, 2, 80);
         NStrip->SetBinContent(1, 3, 64);
-//        NStrip->SetBinContent(1, 4, 64);
+        NStrip->SetBinContent(1, 4, 112);
         NStrip->SetBinContent(2, 1, 80);
         NStrip->SetBinContent(3, 1, 80);
         NStrip->SetBinContent(4, 1, 80);
@@ -64,6 +66,18 @@ void WireStripDisplay(TString address, CSCDetID id, vector<WIRE> &wire, vector<S
            vector<int> layer_wire = FindChamberIndex(id, wire);
            vector<int> layer_comparator = FindChamberIndex(id, comparator);
 
+           if (id.Ring==1) {
+
+              CSCDetID idr4 = id; idr4.Ring = 4;
+              vector<int> layer_wire_r4 = FindChamberIndex(idr4, wire);
+              vector<int> layer_strip_r4 = FindChamberIndex(idr4, strip);
+              vector<int> layer_comparator_r4 = FindChamberIndex(idr4, comparator);
+
+              layer_wire.insert(layer_wire.end(),layer_wire_r4.begin(),layer_wire_r4.end());
+              layer_strip.insert(layer_strip.end(),layer_strip_r4.begin(),layer_strip_r4.end());
+              layer_comparator.insert(layer_comparator.end(),layer_comparator_r4.begin(),layer_comparator_r4.end());
+              }
+
            const int nStrip = NStrip->GetBinContent(id.Station, id.Ring);
            const int nWireGroup = NWireGroup->GetBinContent(id.Station, id.Ring);
            const int nCFEB = nStrip/16;
@@ -74,7 +88,7 @@ void WireStripDisplay(TString address, CSCDetID id, vector<WIRE> &wire, vector<S
 
            c1->SetRightMargin(0.15);
            c1->SetBottomMargin(0.25);
-           c1->SetTopMargin(0.15);
+           c1->SetTopMargin(0.25);
 //strip display
            c1->cd(3)->SetGridy();
 gPad->SetBottomMargin(0.15);
@@ -84,7 +98,7 @@ gPad->SetBottomMargin(0.15);
            TH1F* cfebNotInstall_me21 = new TH1F("cfebNotInstall_me21", "", 81, 1, 82);
            TH1F* cfebNotInstall_me11 = new TH1F("cfebNotInstall_me11", "", 81, 1, 82);
 
-           TH1F* cfebNotReadOut_comparator = new TH1F("cfebNotReadOut_comparator", "", 162, 1, 163);
+           TH1F* cfebNotReadOut_comparator = new TH1F("cfebNotReadOut_comparator", "", nStrip*2+2, 1, nStrip*2+3);
            TH1F* cfebNotInstall_comparator_me21 = new TH1F("cfebNotInstall_comparator_me21", "", 162, 1, 163);
            TH1F* cfebNotInstall_comparator_me11 = new TH1F("cfebNotInstall_comparator_me11", "", 162, 1, 163);
 
@@ -99,9 +113,9 @@ gPad->SetBottomMargin(0.15);
            stripDis_text->Draw("text same");
            cfebNotReadOut->Draw("B same");
            if (id.Station == 2) {
-              cfebNotInstall_me21->Draw("B same");
+//              cfebNotInstall_me21->Draw("B same");
               } else if (id.Station == 1) {
-                        cfebNotInstall_me11->Draw("B same");
+//                        cfebNotInstall_me11->Draw("B same");
                         }
            pt3->Draw();
 
@@ -115,7 +129,7 @@ gPad->SetBottomMargin(0.15);
 
           WireDisplay(id, layer_wire, wire, wireDis, wireDis_text);
           SetTitle(pt1, "Anode Hit Timing");
-
+   
           wireDis->Draw("COLZ");
           wireDis_text->Draw("text same");
           pt1->Draw();
@@ -134,11 +148,13 @@ gPad->SetBottomMargin(0.15);
 
 //          cfebNotInstall->Draw("B same");
 //          cfebNotReadOut_comparator->Draw("B same");
+/*
           if (id.Station == 2) {
              cfebNotInstall_comparator_me21->Draw("B same");
              } else if (id.Station == 1) {
                        cfebNotInstall_comparator_me11->Draw("B same");
                        }
+*/
           SetTitle(pt4, "Comparator Hit Timing");
           pt4->Draw();
 //strip hit display
@@ -173,6 +189,7 @@ gPad->SetBottomMargin(0.15);
 
           c1->Update();
           c1->SaveAs(name + ".png");
+          c1->SaveAs(name + ".pdf");
 
           delete c1;
           delete wireDis;
@@ -216,15 +233,15 @@ void SetSaveNameLegendName(TString& name, TString& legendName, TString address, 
 
            //int Run = 1;
            //int Event = 1;
-  
+ TString  space = "                                   "; 
            if (id.Endcap == 1){
-              legendName = "ME+" + NumberToString(id.Station) + "/" + NumberToString(id.Ring) + "/" + NumberToString(id.Chamber) + "   " + "Run #" + NumberToString(Run) + "  " + "Event #" + NumberToString(Event);
+              legendName = "ME+" + NumberToString(id.Station) + "/" + NumberToString(id.Ring) + "/" + NumberToString(id.Chamber) + space+space + "Run #" + NumberToString(Run) + "  " + "Event #" + NumberToString(Event);
 
               name = address + "/MEPlus" + NumberToString(id.Station) + "_" + NumberToString(id.Ring) + "_" + NumberToString(id.Chamber) +"_"+NumberToString(Run) + "_" + NumberToString(Event);
               }
 
            if (id.Endcap == 2){
-              legendName = "ME-" + NumberToString(id.Station) + "/" + NumberToString(id.Ring) + "/" + NumberToString(id.Chamber)  + "   " + "Run #" + NumberToString(Run) + "  " + "Event #" + NumberToString(Event);
+              legendName = "ME-" + NumberToString(id.Station) + "/" + NumberToString(id.Ring) + "/" + NumberToString(id.Chamber)  + space+space + "Run #" + NumberToString(Run) + "  " + "Event #" + NumberToString(Event);
 
               name = address + "/MEMinus" + NumberToString(id.Station) + "_" + NumberToString(id.Ring) + "_" + NumberToString(id.Chamber) + "_"+NumberToString(Run) + "_"+ NumberToString(Event);
 
@@ -263,6 +280,8 @@ void StripDisplay(/*TCanvas* c1,*/ CSCDetID id, vector<int>& layer_strip, vector
 */
            for (int i = 0; i < int(layer_strip.size()); i++){//in each interesting layer has strip hits
 
+               int tempStation = strip[layer_strip[i]].first.Station;
+               int tempRing = strip[layer_strip[i]].first.Ring;
                int tempLayer = strip[layer_strip[i]].first.Layer;
                vector<Strips> tempStrip = strip[layer_strip[i]].second;
 
@@ -271,11 +290,14 @@ void StripDisplay(/*TCanvas* c1,*/ CSCDetID id, vector<int>& layer_strip, vector
                int option1 = 1;
                int option2 = 2;
 
-               MakeOneLayerStripDisplay(tempLayer, tempStrip, stripDis, option1);
+               bool doStagger = false;
+               if (!(tempStation == 1 &&(tempRing==1 || tempRing==4))) doStagger = true;
+
+               MakeOneLayerStripDisplay(tempLayer, tempStrip, stripDis, option1, doStagger);
 
                if (tempLayer == id.Layer){
 
-                  MakeOneLayerStripDisplay(tempLayer, tempStrip, stripDis_text, option2);
+                  MakeOneLayerStripDisplay(tempLayer, tempStrip, stripDis_text, option2, doStagger);
 
                   }
                }
@@ -314,7 +336,7 @@ void StripDisplay(/*TCanvas* c1,*/ CSCDetID id, vector<int>& layer_strip, vector
 }
 
 
-void MakeOneLayerStripDisplay(int layer, vector<Strips> &s, TH2F* stripDisplay, int option){
+void MakeOneLayerStripDisplay(int layer, vector<Strips> &s, TH2F* stripDisplay, int option, bool doStagger){
 
       if (option == 1){
 
@@ -324,12 +346,12 @@ void MakeOneLayerStripDisplay(int layer, vector<Strips> &s, TH2F* stripDisplay, 
            int x2 = 2*(s[i].Strip-1) + 2;
            int x3 = 2*(s[i].Strip-1) + 3;
 
-           if(layer == 1 || layer == 3 || layer == 5){
+           if(doStagger && (layer == 1 || layer == 3 || layer == 5)){
 
               stripDisplay->SetBinContent(x2, layer, s[i].MaxADC);
               stripDisplay->SetBinContent(x3, layer, s[i].MaxADC);
 
-             }else  if(layer == 2 || layer == 4 || layer ==6){
+             }else {// if(layer == 2 || layer == 4 || layer ==6){
 
                       stripDisplay->SetBinContent(x1, layer, s[i].MaxADC);
                       stripDisplay->SetBinContent(x2, layer, s[i].MaxADC);
@@ -345,11 +367,11 @@ void MakeOneLayerStripDisplay(int layer, vector<Strips> &s, TH2F* stripDisplay, 
                             int x1 = 2*(s[i].Strip-1) + 1;
                             int x2 = 2*(s[i].Strip-1) + 2;
 
-                            if (layer == 1 || layer == 3 || layer ==5){
+                            if (doStagger && (layer == 1 || layer == 3 || layer ==5) ){
 
                                stripDisplay->SetBinContent(x2, layer, s[i].MaxADC);
 
-                               }else if(layer == 2 || layer == 4 || layer == 6){
+                               }else {//if(layer == 2 || layer == 4 || layer == 6){
 
                                         stripDisplay->SetBinContent(x1, layer, s[i].MaxADC);
                                                                                                                                                        
@@ -377,7 +399,7 @@ void MakeOneLayerWireDisplay(int layer, vector<Wire> &w, TH2F* wireDisplay){
 }
 
 
-void MakeOneLayerComparatorDisplay(int layer, vector<Comparator> &c, TH2F* comparatorDisplay){
+void MakeOneLayerComparatorDisplay(int layer, vector<Comparator> &c, TH2F* comparatorDisplay, bool doStagger){
 
         for (int i = 0; i < int(c.size()); i++){
 
@@ -386,13 +408,13 @@ void MakeOneLayerComparatorDisplay(int layer, vector<Comparator> &c, TH2F* compa
 
             int comparator = 2*(c[i].Strip-1)+c[i].ComparatorNumber+1;
 
-            if (layer == 2 || layer == 4 || layer ==6){
+            if (doStagger && (layer == 1 || layer == 3 || layer ==5)){
 
-               comparatorDisplay->SetBinContent(comparator, layer, time);
+               comparatorDisplay->SetBinContent(comparator+1, layer, time);
 
-               }else if(layer == 1 || layer == 3 || layer ==5){
+               }else { //if(layer == 2 || layer == 4 || layer ==6){
 
-                        comparatorDisplay->SetBinContent(comparator+1, layer, time);
+                        comparatorDisplay->SetBinContent(comparator, layer, time);
 
                         }
             }
@@ -503,7 +525,9 @@ void CountCFEB(double cfeb[], vector<Strips> s){
 
         for (int i = 0; i < int(s.size()); i++){
 
-            if (s[i].Strip <= 16){
+            int icfeb = (s[i].Strip-1)/16;
+            cfeb[icfeb]++;
+/*            if (s[i].Strip <= 16){
 
                 cfeb[0]++;
 
@@ -519,12 +543,15 @@ void CountCFEB(double cfeb[], vector<Strips> s){
 
                                              cfeb[3]++;
 
-                                             }else if(s[i].Strip >= 65){
+                                             }else if(s[i].Strip >= 65 && s[i].Strip <=80){
 
                                                      cfeb[4]++;
 
-                                                     }
+                                                     } else if (s[i].Strip >= 81 && s[i].Strip <=96){
 
+                                                               cfeb[5]++;
+                                                               }
+*/
             }
 
 }
@@ -858,6 +885,7 @@ vector<int> FindChamberIndex(CSCDetID id, vector<T> &vec){
         for (int i = 0; i < int(vec.size()); i++){
 
             CSCDetID tempID = vec[i].first;
+            
             if (id.Endcap == tempID.Endcap &&
                 id.Station == tempID.Station &&
                 id.Ring == tempID.Ring &&
@@ -875,6 +903,8 @@ vector<int> FindChamberIndex(CSCDetID id, vector<T> &vec){
 
 void WireDisplay(CSCDetID id, vector<int>& layer_wire, vector<WIRE>& wire, TH2F* wireDis, TH2F* wireDis_text){
 
+
+          if (id.Ring == 4) id.Ring = 1; //me11a wire digi are saved in me11b
 
           for (int i = 0; i < int(layer_wire.size()); i++){//in each interesting layer has wire hits
 
@@ -924,18 +954,24 @@ void SetEventDisplayLegend(TString legendName){
 
 
 void ComparatorDisplay(CSCDetID id, vector<int>& layer_comparator, vector<COMPARATOR>& comparator, TH2F* comparatorDis, TH2F* comparatorDis_text){
-
+//cout << id.Endcap << "," << id.Station << "," << id.Ring << "," << id.Chamber << endl;
+//cout << "layer_comparator: " << layer_comparator.size() << endl;
 
           for (int i = 0; i < int(layer_comparator.size()); i++){//in each interesting layer has wire hits
 
+              int tempStation = comparator[layer_comparator[i]].first.Station;
+              int tempRing = comparator[layer_comparator[i]].first.Ring;
               int tempLayer = comparator[layer_comparator[i]].first.Layer;
               vector<Comparator> tempComparator = comparator[layer_comparator[i]].second;
 
-              MakeOneLayerComparatorDisplay(tempLayer, tempComparator, comparatorDis);
+              bool doStagger = false;
+              if (!(tempStation==1 && (tempRing==1||tempRing==4))) doStagger = true;
+
+              MakeOneLayerComparatorDisplay(tempLayer, tempComparator, comparatorDis, doStagger);
 
               if (tempLayer == id.Layer){
 
-                 MakeOneLayerComparatorDisplay(tempLayer, tempComparator, comparatorDis_text);
+                 MakeOneLayerComparatorDisplay(tempLayer, tempComparator, comparatorDis_text, doStagger);
 
                  }
               }
