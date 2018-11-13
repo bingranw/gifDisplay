@@ -1,1 +1,1 @@
-cmsRun gifDisplay.py plotdir="/home/mhl/public_html/2018/20180226_display"
+cmsRun gifDisplay.py plotdir="/eos/user/b/biwang/SWAN_projects/RecHit/event_display/all/"

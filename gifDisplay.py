@@ -18,7 +18,9 @@ process.load("RecoMuon.MuonSeedGenerator.standAloneMuonSeeds_cff")
 #process.load("RecoMuon.GlobalMuonProducer.globalMuons_cff")
 
 #process.GlobalTag.globaltag = '74X_dataRun2_Prompt_v0'
-process.GlobalTag.globaltag = '92X_dataRun2_Prompt_v11'
+# process.GlobalTag.globaltag = '92X_dataRun2_Prompt_v11'
+from Configuration.AlCa.GlobalTag import GlobalTag
+process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_data', '')
 
 process.options = cms.untracked.PSet(
 	SkipEvent = cms.untracked.vstring('LogicError','ProductNotFound')
@@ -40,17 +42,18 @@ process.MessageLogger = cms.Service("MessageLogger",
 process.source = cms.Source("PoolSource",
 #  fileNames = cms.untracked.vstring('file:me11_test27_oct23.root')
 #  fileNames = cms.untracked.vstring('file:../../../CMSSW_9_2_13/src/../../inputRoot/0026F566-83BB-E711-B677-7845C4FC3683.root')
-  fileNames = cms.untracked.vstring('file:../../../inputRoot/Zmu_rawreco_2016H.root')
+  # fileNames = cms.untracked.vstring('file:../../../inputRoot/Zmu_rawreco_2016H.root')
+  fileNames = cms.untracked.vstring('file:/afs/cern.ch/work/b/biwang/private/RecHit/reco_csc_from_nocomp_data.root')
 #  eventsToProcess = cms.untracked.VEventRange(pickEvent + '-' + pickEvent)
 
 )
 
-maxEvents = cms.untracked.PSet(
+process.maxEvents = cms.untracked.PSet(
      input = cms.untracked.int32(-1)
 )
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.MessageLogger.cerr.FwkReport.reportEvery = 10000
+process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.source.duplicateCheckMode = cms.untracked.string('noDuplicateCheck')
 
 process.GifDisplay = cms.EDAnalyzer('GifDisplay',
